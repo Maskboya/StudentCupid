@@ -1,0 +1,154 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Swipe - StudentCupid</title>
+  <link rel='stylesheet' href='css/style.css'>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
+    import { getFirestore, collection, getDocs, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCP17SNnk0a4vH03wTQlK66rxy8SfTXKWY",
+      authDomain: "studentcupid-0714aj.firebaseapp.com",
+      projectId: "studentcupid-0714aj",
+      storageBucket: "studentcupid-0714aj.appspot.com",
+      messagingSenderId: "199869211019",
+      appId: "1:199869211019:web:098405fb4a486971128f8e",
+      measurementId: "G-CYR3K4TXMS"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const DEV_MODE = true;
+
+    let currentUserData = null;
+    let currentUserId = null;
+    let candidates = [];
+    let currentIndex = 0;
+
+    function showUserCard(user) {
+      const container = document.getElementById("card-container");
+      container.innerHTML = `
+        <div style="padding: 10px; border: 1px solid #ccc; margin: 10px auto; max-width: 300px;">
+          <h3>${user.name}</h3>
+          <p>${user.branch} - ${user.year}</p>
+          <p>Gender: ${user.gender}</p>
+        </div>
+      `;
+    }
+
+   async function handleSwipe(action) {
+  if (currentIndex >= candidates.length) return;
+  const selectedUser = candidates[currentIndex];
+  console.log(`${action.toUpperCase()} -> `, selectedUser.name);
+  
+  const interactionRef = doc(db, "interactions", currentUserId);
+  const snap = await getDoc(interactionRef);
+  let data = snap.exists() ? snap.data() : { likes: [], skips: [] };
+  data[action + "s"].push(selectedUser.id);
+  await setDoc(interactionRef, data);
+
+  // ✅ Only check for match when action is "like"
+  if (action === "like") {
+    const { checkForMatch } = await import('./js/match-check.js');
+    await checkForMatch(currentUserId, selectedUser.id);
+  }
+
+  currentIndex++;
+  loadNextUser();
+}
+
+
+    function loadNextUser() {
+      if (currentIndex < candidates.length) {
+        showUserCard(candidates[currentIndex]);
+      } else {
+        document.getElementById("card-container").innerHTML = "<p>No more profiles to show.</p>";
+        document.getElementById("controls").style.display = "none";
+      }
+    }
+
+    async function init() {
+      onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+          window.location.href = "index.html";
+          return;
+        }
+
+        currentUserId = user.uid;
+        const userDoc = await getDoc(doc(db, "users", currentUserId));
+        currentUserData = userDoc.data();
+
+        if (!currentUserData || !currentUserData.name || !currentUserData.gender || !currentUserData.interest) {
+          window.location.href = "signup.html";
+          return;
+        }
+
+        const allUsers = await getDocs(collection(db, "users"));
+        const interactionSnap = await getDoc(doc(db, "interactions", currentUserId));
+        const interacted = interactionSnap.exists() ? [...interactionSnap.data().likes, ...interactionSnap.data().skips] : [];
+
+        allUsers.forEach(docSnap => {
+          const data = docSnap.data();
+          const hasCompleteProfile = data.name && data.gender && data.interest;
+          const notInteracted = !interacted.includes(docSnap.id);
+          const matchesInterest = currentUserData.interest.includes(data.gender[0]);
+
+          if (
+            hasCompleteProfile &&
+            notInteracted &&
+            docSnap.id !== currentUserId &&
+            (DEV_MODE || matchesInterest)
+          ) {
+            candidates.push({ id: docSnap.id, ...data });
+          }
+        });
+
+        console.log("Candidates loaded:", candidates);
+        loadNextUser();
+      });
+    }
+
+    window.handleSwipe = handleSwipe;
+    init();
+  </script><script type="module">
+  import { checkForMatch } from './js/match-check.js';
+</script>
+
+
+</head>
+<body>
+  <h2>Discover Matches</h2>
+  <div id="card-container"></div>
+  <div id="controls">
+    <button onclick="handleSwipe('skip')">Skip</button>
+    <button onclick="handleSwipe('like')">Like</button>
+
+  </div>
+  <p id="match-message" 
+  style="display:none; 
+  text-align:center; 
+  color:hotpink;
+   font-size:18px;
+    margin-top: 15px;">
+  </p>
+<button onclick="window.location.href='matches.html'" style="
+  background-color: hotpink;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 10px;
+  margin: 10px auto;
+  display: block;
+  font-size: 16px;
+  cursor: pointer;
+">
+  View Matches 💖
+</button>
+
+</body>
+</html>
