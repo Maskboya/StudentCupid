@@ -1,19 +1,66 @@
-
 <!DOCTYPE html>
 <html>
 <head>
   <title>StudentCupid</title>
   <link rel='stylesheet' href='css/style.css'>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #fce4ec;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 50px;
+    }
+
+    form {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+      width: 300px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    input {
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      padding: 12px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 5px;
+      background-color: #d63384;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #c2185b;
+    }
+
+    #message {
+      margin-top: 15px;
+      font-weight: bold;
+      color: red;
+    }
+  </style>
 </head>
 <body>
   <h2>Login / Signup</h2>
+
   <form id="auth-form">
-    <input type="email" id="email" placeholder="College Email" required><br>
-    <input type="password" id="password" placeholder="Password" required><br>
+    <input type="email" id="email" placeholder="College Email" required>
+    <input type="password" id="password" placeholder="Password" required>
     <button type="button" onclick="loginUser()">Login</button>
     <button type="button" onclick="signupUser()">Signup</button>
+    <p id="message"></p>
   </form>
-  <p id="message"></p>
 
   <script type="module" src="js/auth.js"></script>
 </body>
