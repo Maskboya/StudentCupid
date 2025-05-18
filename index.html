@@ -5,31 +5,27 @@
   <link rel='stylesheet' href='css/style.css'>
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
+      font-family: sans-serif;
       background: #fce4ec;
       display: flex;
       flex-direction: column;
       align-items: center;
       padding: 50px;
     }
-
     form {
       background: white;
       padding: 30px;
       border-radius: 10px;
       box-shadow: 0 6px 16px rgba(0,0,0,0.2);
       width: 300px;
-      display: flex;
-      flex-direction: column;
     }
-
     input {
       padding: 10px;
       margin: 10px 0;
-      border: 1px solid #ccc;
       border-radius: 5px;
+      border: 1px solid #ccc;
+      width: 100%;
     }
-
     button {
       padding: 12px;
       margin-top: 10px;
@@ -38,22 +34,18 @@
       background-color: #d63384;
       color: white;
       cursor: pointer;
+      width: 100%;
     }
-
-    button:hover {
-      background-color: #c2185b;
-    }
-
     #message {
       margin-top: 15px;
       font-weight: bold;
       color: red;
+      text-align: center;
     }
   </style>
 </head>
 <body>
   <h2>Login / Signup</h2>
-
   <form id="auth-form">
     <input type="email" id="email" placeholder="College Email" required>
     <input type="password" id="password" placeholder="Password" required>
@@ -65,3 +57,4 @@
   <script type="module" src="js/auth.js"></script>
 </body>
 </html>
+
