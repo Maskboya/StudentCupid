@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -67,6 +66,7 @@
       <input type="text" id="name" placeholder="Name" required>
       <input type="text" id="branch" placeholder="Branch" required>
       <input type="text" id="year" placeholder="Year" required>
+
       <label>Gender</label>
       <select id="gender">
         <option value="M">Male</option>
@@ -94,20 +94,28 @@
     import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-storage.js";
 
+    // ✅ Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyCP17SNnk0a4vH03wTQlK66rxy8SfTXKWY",
-  authDomain: "studentcupid-0714aj.firebaseapp.com",
-  projectId: "studentcupid-0714aj",
-  storageBucket: "studentcupid-0714aj.firebasestorage.app",
-  messagingSenderId: "199869211019",
-  appId: "1:199869211019:web:098405fb4a486971128f8e",
-  measurementId: "G-CYR3K4TXMS"
+      authDomain: "studentcupid-0714aj.firebaseapp.com",
+      projectId: "studentcupid-0714aj",
+      storageBucket: "studentcupid-0714aj.firebasestorage.app",
+      messagingSenderId: "199869211019",
+      appId: "1:199869211019:web:098405fb4a486971128f8e",
+      measurementId: "G-CYR3K4TXMS"
+    };
+
+    // ✅ Initialize Firebase
+    const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
     const storage = getStorage(app);
 
     onAuthStateChanged(auth, (user) => {
-      if (!user) window.location.href = "index.html";
+      if (!user) {
+        window.location.href = "index.html";
+        return;
+      }
 
       const form = document.getElementById("signup-form");
       form.addEventListener("submit", async (e) => {
@@ -117,28 +125,45 @@
         const branch = document.getElementById("branch").value;
         const year = document.getElementById("year").value;
         const gender = document.getElementById("gender").value;
-        const interestElems = document.querySelectorAll(".interest:checked");
-        const interest = Array.from(interestElems).map(el => el.value);
         const file = document.getElementById("profile-pic").files[0];
 
-        if (!file) return alert("Please select a profile image.");
+        const interestElems = document.querySelectorAll(".interest:checked");
+        const interest = Array.from(interestElems).map(el => el.value);
+
+        if (interest.length === 0) {
+          alert("Please select at least one interest.");
+          return;
+        }
+
+        if (!file) {
+          alert("Please select a profile picture.");
+          return;
+        }
 
         try {
-          const storageRef = ref(storage, "profiles/" + user.uid + ".jpg");
+          // ✅ Upload profile image
+          const storageRef = ref(storage, `profiles/${user.uid}.jpg`);
           await uploadBytes(storageRef, file);
           const photoURL = await getDownloadURL(storageRef);
 
+          // ✅ Save user data
           await setDoc(doc(db, "users", user.uid), {
-            name, branch, year, gender, interest, photoURL
+            name,
+            branch,
+            year,
+            gender,
+            interest,
+            photoURL
           });
 
           alert("Profile saved successfully!");
           window.location.href = "swipe.html";
-        } catch (error) {
-          alert("Error saving profile: " + error.message);
+        } catch (err) {
+          alert("Error saving profile: " + err.message);
         }
       });
     });
   </script>
 </body>
 </html>
+
