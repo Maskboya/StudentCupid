@@ -2,12 +2,97 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Complete Profile - StudentCupid</title>
-  <link rel='stylesheet' href='css/style.css'>
+  <title>StudentCupid Signup</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f8e8ef;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .signup-container {
+      background: white;
+      padding: 30px 40px;
+      border-radius: 10px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+      max-width: 400px;
+      width: 100%;
+    }
+    h2 {
+      text-align: center;
+      color: #d63384;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 15px;
+    }
+    .checkbox-group {
+      margin-top: 10px;
+    }
+    .checkbox-group label {
+      display: inline-block;
+      margin-right: 10px;
+    }
+    button {
+      width: 100%;
+      background: #d63384;
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 20px;
+    }
+    button:hover {
+      background: #c12772;
+    }
+  </style>
+</head>
+<body>
+  <div class="signup-container">
+    <h2>Create Profile</h2>
+    <form id="signup-form">
+      <input type="text" id="name" placeholder="Name" required>
+      <input type="text" id="branch" placeholder="Branch" required>
+      <input type="text" id="year" placeholder="Year" required>
+      <label>Gender</label>
+      <select id="gender">
+        <option value="M">Male</option>
+        <option value="F">Female</option>
+        <option value="O">Other</option>
+      </select>
+
+      <label>Interested In</label>
+      <div class="checkbox-group">
+        <label><input type="checkbox" value="M" class="interest"> Men</label>
+        <label><input type="checkbox" value="F" class="interest"> Women</label>
+        <label><input type="checkbox" value="O" class="interest"> Other</label>
+      </div>
+
+      <label>Upload Profile Picture</label>
+      <input type="file" id="profile-pic" accept="image/*" required>
+
+      <button type="submit">Save</button>
+    </form>
+  </div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
     import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-storage.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCP17SNnk0a4vH03wTQlK66rxy8SfTXKWY",
@@ -15,57 +100,47 @@
       projectId: "studentcupid-0714aj",
       storageBucket: "studentcupid-0714aj.appspot.com",
       messagingSenderId: "199869211019",
-      appId: "1:199869211019:web:098405fb4a486971128f8e",
-      measurementId: "G-CYR3K4TXMS"
+      appId: "1:199869211019:web:098405fb4a486971128f8e"
     };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    const storage = getStorage(app);
 
     onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        window.location.href = "index.html";
-      }
+      if (!user) window.location.href = "index.html";
 
-      const form = document.getElementById("profile-form");
+      const form = document.getElementById("signup-form");
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
-        const profileData = {
-          name: form.name.value,
-          branch: form.branch.value,
-          year: form.year.value,
-          gender: form.gender.value,
-          interest: form.interest.value,
-          email: user.email,
-        };
+
+        const name = document.getElementById("name").value;
+        const branch = document.getElementById("branch").value;
+        const year = document.getElementById("year").value;
+        const gender = document.getElementById("gender").value;
+        const interestElems = document.querySelectorAll(".interest:checked");
+        const interest = Array.from(interestElems).map(el => el.value);
+        const file = document.getElementById("profile-pic").files[0];
+
+        if (!file) return alert("Please select a profile image.");
 
         try {
-          await setDoc(doc(db, "users", user.uid), profileData);
-          document.getElementById("message").textContent = "Profile saved successfully!";
-          setTimeout(() => window.location.href = "swipe.html", 1500);
-        } catch (err) {
-          document.getElementById("message").textContent = "Error saving profile: " + err.message;
+          const storageRef = ref(storage, "profiles/" + user.uid + ".jpg");
+          await uploadBytes(storageRef, file);
+          const photoURL = await getDownloadURL(storageRef);
+
+          await setDoc(doc(db, "users", user.uid), {
+            name, branch, year, gender, interest, photoURL
+          });
+
+          alert("Profile saved successfully!");
+          window.location.href = "swipe.html";
+        } catch (error) {
+          alert("Error saving profile: " + error.message);
         }
       });
     });
   </script>
-</head>
-<body>
-  <h2>Complete Your Profile</h2>
-  <form id="profile-form">
-    <input type="text" id="name" placeholder="Your Name" required><br>
-    <input type="text" id="branch" placeholder="Your Branch" required><br>
-    <input type="text" id="year" placeholder="Your Year (e.g., 2nd Year)" required><br>
-    <select id="gender" required>
-      <option value="">Select Gender</option>
-      <option value="Male">Male</option>
-      <option value="Female">Female</option>
-      <option value="Other">Other</option>
-    </select><br>
-    <input type="text" id="interest" placeholder="Interested In (M/F/O)" required><br>
-    <button type="submit">Save Profile</button>
-  </form>
-  <p id="message"></p>
 </body>
 </html>

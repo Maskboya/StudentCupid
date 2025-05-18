@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Email Verification</title>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
+    import { getAuth, onAuthStateChanged, reload } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCP17SNnk0a4vH03wTQlK66rxy8SfTXKWY",
+      authDomain: "studentcupid-0714aj.firebaseapp.com",
+      projectId: "studentcupid-0714aj",
+      storageBucket: "studentcupid-0714aj.appspot.com",
+      messagingSenderId: "199869211019",
+      appId: "1:199869211019:web:098405fb4a486971128f8e",
+      measurementId: "G-CYR3K4TXMS"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    window.checkVerification = async function () {
+      const user = auth.currentUser;
+      if (user) {
+        await reload(user); // Refresh user info
+        if (user.emailVerified) {
+          alert("Email verified! Redirecting to Swipe...");
+          window.location.href = "swipe.html";
+        } else {
+          alert("Email not verified yet. Please check your inbox and refresh.");
+        }
+      } else {
+        alert("No user is logged in.");
+      }
+    };
+  </script>
+</head>
+<body>
+  <h2>Please verify your email</h2>
+  <p>We've sent you a verification link. Click it, then click the button below:</p>
+  <button onclick="checkVerification()">I Verified My Email</button>
+</body>
+</html>

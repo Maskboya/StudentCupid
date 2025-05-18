@@ -1,9 +1,45 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>Swipe - StudentCupid</title>
-  <link rel='stylesheet' href='css/style.css'>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    #card-container {
+      padding: 10px;
+      border: 1px solid #ccc;
+      margin: 10px auto;
+      max-width: 300px;
+    }
+
+    #controls button {
+      margin: 5px;
+      padding: 10px 15px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #match-message {
+      display: none;
+      text-align: center;
+      color: hotpink;
+      font-size: 18px;
+      margin-top: 15px;
+    }
+
+    .match-btn {
+      background-color: hotpink;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 10px;
+      margin: 10px auto;
+      display: block;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
@@ -22,7 +58,6 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-
     const DEV_MODE = true;
 
     let currentUserData = null;
@@ -33,35 +68,31 @@
     function showUserCard(user) {
       const container = document.getElementById("card-container");
       container.innerHTML = `
-        <div style="padding: 10px; border: 1px solid #ccc; margin: 10px auto; max-width: 300px;">
-          <h3>${user.name}</h3>
-          <p>${user.branch} - ${user.year}</p>
-          <p>Gender: ${user.gender}</p>
-        </div>
+        <h3>${user.name}</h3>
+        <p>${user.branch} - ${user.year}</p>
+        <p>Gender: ${user.gender}</p>
       `;
     }
 
-   async function handleSwipe(action) {
-  if (currentIndex >= candidates.length) return;
-  const selectedUser = candidates[currentIndex];
-  console.log(`${action.toUpperCase()} -> `, selectedUser.name);
-  
-  const interactionRef = doc(db, "interactions", currentUserId);
-  const snap = await getDoc(interactionRef);
-  let data = snap.exists() ? snap.data() : { likes: [], skips: [] };
-  data[action + "s"].push(selectedUser.id);
-  await setDoc(interactionRef, data);
+    async function handleSwipe(action) {
+      if (currentIndex >= candidates.length) return;
+      const selectedUser = candidates[currentIndex];
+      console.log(`${action.toUpperCase()} -> `, selectedUser.name);
 
-  // ✅ Only check for match when action is "like"
-  if (action === "like") {
-    const { checkForMatch } = await import('./js/match-check.js');
-    await checkForMatch(currentUserId, selectedUser.id);
-  }
+      const interactionRef = doc(db, "interactions", currentUserId);
+      const snap = await getDoc(interactionRef);
+      let data = snap.exists() ? snap.data() : { likes: [], skips: [] };
+      data[action + "s"].push(selectedUser.id);
+      await setDoc(interactionRef, data);
 
-  currentIndex++;
-  loadNextUser();
-}
+      if (action === "like") {
+        const { checkForMatch } = await import('./js/match-check.js');
+        await checkForMatch(currentUserId, selectedUser.id);
+      }
 
+      currentIndex++;
+      loadNextUser();
+    }
 
     function loadNextUser() {
       if (currentIndex < candidates.length) {
@@ -76,6 +107,11 @@
       onAuthStateChanged(auth, async (user) => {
         if (!user) {
           window.location.href = "index.html";
+          return;
+        }
+
+        if (!user.emailVerified) {
+          window.location.href = "verify.html";
           return;
         }
 
@@ -115,40 +151,23 @@
 
     window.handleSwipe = handleSwipe;
     init();
-  </script><script type="module">
-  import { checkForMatch } from './js/match-check.js';
-</script>
-
-
+  </script>
 </head>
+
 <body>
-  <h2>Discover Matches</h2>
+  <h2 style="text-align: center;">Discover Matches</h2>
+
   <div id="card-container"></div>
-  <div id="controls">
+
+  <div id="controls" style="text-align: center;">
     <button onclick="handleSwipe('skip')">Skip</button>
     <button onclick="handleSwipe('like')">Like</button>
-
   </div>
-  <p id="match-message" 
-  style="display:none; 
-  text-align:center; 
-  color:hotpink;
-   font-size:18px;
-    margin-top: 15px;">
-  </p>
-<button onclick="window.location.href='matches.html'" style="
-  background-color: hotpink;
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 10px;
-  margin: 10px auto;
-  display: block;
-  font-size: 16px;
-  cursor: pointer;
-">
-  View Matches 💖
-</button>
 
+  <p id="match-message"></p>
+
+  <button onclick="window.location.href='matches.html'" class="match-btn">
+    View Matches 💖
+  </button>
 </body>
 </html>

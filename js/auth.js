@@ -1,6 +1,5 @@
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendEmailVerification } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCP17SNnk0a4vH03wTQlK66rxy8SfTXKWY",
@@ -45,9 +44,11 @@ window.signupUser = async function () {
   }
 
   try {
-    await createUserWithEmailAndPassword(auth, email, password);
-    message.textContent = "Signup successful!";
-    window.location.href = "signup.html";
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+    await sendEmailVerification(user);
+    message.textContent = "Verification email sent!";
+    window.location.href = "verify.html";
   } catch (err) {
     message.textContent = "Signup failed: " + err.message;
   }
