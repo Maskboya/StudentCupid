@@ -67,9 +67,17 @@
     let candidates = [];
     let currentIndex = 0;
 
-    async function showUserCard(user) {
-      const container = document.getElementById("card-container");
-      let imageUrl = "default.jpg"; // fallback
+ function showUserCard(user) {
+  const container = document.getElementById("card-container");
+  const imageUrl = "img/default.jpg"; // use your own placeholder image
+
+  container.innerHTML = `
+    <img src="${imageUrl}" alt="Profile Photo" style="width: 100%; border-radius: 12px;" />
+    <h3>${user.name}</h3>
+    <p>${user.branch} - ${user.year}</p>
+    <p>Gender: ${user.gender}</p>
+  `;
+}
 
       try {
         const imageRef = ref(storage, `profiles/${user.id}.jpg`);
